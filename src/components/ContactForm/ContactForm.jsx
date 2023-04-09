@@ -1,27 +1,34 @@
-import { useDispatch, useSelector } from "react-redux";
 import styles from "./ContactForm";
 import PropTypes from 'prop-types';
-import { getContacts } from "components/redux/selector";
-import { addContact } from "components/redux/contactsSlice";
-
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import {
+  useAddContactMutation,
+  useGetContactsQuery
+} from "components/redux/contactsSlice";
 
 const ContactForm = () => {
-  const dispatch = useDispatch();
-  const contacts = useSelector(getContacts);
+  const [addContact] = useAddContactMutation();
+  const { data } = useGetContactsQuery();
 
-   const handleSubmit = event => {
-    event.preventDefault();
-    const form = event.target;
+  const handleSubmit = async e => {
+    e.preventDefault();
+    const form = e.target;
     const name = form.elements.name.value;
     const number = form.elements.number.value;
+    const contactData = { name, number };
     form.reset();
-    if (contacts.value.find(contact => contact.name === name)) {
-      alert(`${name} is already in contacts`);
+    if (data.find(contact => contact.name === name)) {
+      Notify.warning(`${name} is already in contacts`);
       return false;
     }
-    dispatch(addContact(name, number));
-    return true;
+    try {
+      await addContact(contactData);
+      Notify.success('Contact was added to your phonebook');
+    } catch (error) {
+      Notify.failure('Something wrong. Please, try again');
+    }
   };
+
     return (
       <>
       <form className={styles.TaskEditor} onSubmit={handleSubmit} autoComplete="off">
@@ -40,7 +47,7 @@ const ContactForm = () => {
           <input
             id="number"
             className={styles.TaskEditor_input}
-            type="text"
+            type="tel"
             name="number"
            
            />

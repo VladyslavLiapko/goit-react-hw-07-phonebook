@@ -1,29 +1,31 @@
-import React from "react";
+import { useGetContactsQuery } from "components/redux/contactsSlice";
 import PropTypes from "prop-types";
 import styles from "./ContactList";
 import { useSelector } from 'react-redux';
-import { getContacts, getFilter } from "components/redux/selector";
-import { Contact } from "components/Contact/Contact"; 
+import { getFilter } from "components/redux/selector";
+import { Contact } from 'components/Contact/Contact'; 
 
 const ContactList = () => {
-    const contacts = useSelector(getContacts);
-    const { input } = useSelector(getFilter);
+  const { data, error, isLoading } = useGetContactsQuery();
+  const { filter } = useSelector(getFilter);
 
-  if (!contacts) {
+  if (!data) {
     return null;
   }
-  const visibleContacts = contacts.value.filter(contact =>
-    contact.name.toLowerCase().includes(input.toLowerCase())
-  );
-             
-    return (
+  const visibleContacts = data.filter(contact =>
+    contact.name.toLowerCase().includes(filter.toLowerCase())
+  );       
+  return (
+  <div>
+      {!error && isLoading && <div>Loading</div>}
          <ul className={styles.TaskList}>
       {visibleContacts.map(contact => (
         <li className={styles.TaskList_item} key={contact.id}>
           <Contact contact={contact} />
         </li>
       ))}
-    </ul>
+      </ul>
+      </div>
     )
 };
 
